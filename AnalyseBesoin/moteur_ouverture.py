@@ -1,4 +1,4 @@
-class AssociationsLecteurPorte:
+class MoteurOuverture:
     def __init__(self):
         pass
     
