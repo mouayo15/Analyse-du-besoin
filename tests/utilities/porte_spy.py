@@ -1,10 +1,12 @@
-class PorteSpy:
+from analyse_besoin.i_porte import IPorte
+
+class PorteSpy(IPorte):
     def __init__(self):
-        self.open_called = False
-        self.close_called = False
+        self.nombre_ouvertures_demandees = 0
 
-    def open(self):
-        self.open_called = True
+    @property
+    def ouverture_demande(self):
+        return self.nombre_ouvertures_demandees > 0
 
-    def close(self):
-        self.close_called = True
+    def ouvrir(self):
+        self.nombre_ouvertures_demandees += 1

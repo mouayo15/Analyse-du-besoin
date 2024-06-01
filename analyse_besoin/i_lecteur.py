@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 class ILecteur(ABC):
+    @property
     @abstractmethod
-    def read(self):
+    def badge_detecte(self):
         pass
