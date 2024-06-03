@@ -133,5 +133,37 @@ class ControleAccesTest(unittest.TestCase):
         self.assertFalse(porte_devant_rester_fermee.ouverture_demande)
         self.assertTrue(porte_devant_s_ouvrir.ouverture_demande)
 
+    def test_porte_forcee_ouverte_avec_badge(self):
+        # ETANT DONNE une Porte forcée en ouverture
+        porte_forcee = PorteSpy()
+        porte_forcee.forcer_ouverture()
+
+        lecteur = LecteurFake()
+        lecteur.simuler_detection_badge()
+
+        moteur_ouverture = MoteurOuverture()
+        moteur_ouverture.associer(lecteur, porte_forcee)
+
+        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
+        moteur_ouverture.interroger()
+
+        # ALORS la Porte forcée reçoit le signal d'ouverture même sans présence de badge valide
+        self.assertTrue(porte_forcee.ouverture_demande)
+
+    def test_porte_forcee_ouverte_sans_badge(self):
+        # ETANT DONNE une Porte forcée en ouverture
+        porte_forcee = PorteSpy()
+        porte_forcee.forcer_ouverture()
+
+        lecteur = LecteurFake()
+
+        moteur_ouverture = MoteurOuverture()
+        moteur_ouverture.associer(lecteur, porte_forcee)
+
+        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
+        moteur_ouverture.interroger()
+
+        # ALORS la Porte forcée reçoit le signal d'ouverture même sans présence de badge
+        self.assertTrue(porte_forcee.ouverture_demande)
 if __name__ == "__main__":
     unittest.main()
