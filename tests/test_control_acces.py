@@ -165,5 +165,68 @@ class ControleAccesTest(unittest.TestCase):
 
         # ALORS la Porte forcée reçoit le signal d'ouverture même sans présence de badge
         self.assertTrue(porte_forcee.ouverture_demande)
+
+    def test_deux_portes_deux_lecteurs_avec_badge_connu(self):
+        # ETANT DONNE deux Portes reliées à deux Lecteurs
+        # ET un badge qui peut ouvrir ces deux Portes est présenté à une seule Porte
+        porte_devant_ouvrir = PorteSpy()
+        porte_reste_fermee = PorteSpy()
+        lecteur_devant_ouvrir = LecteurFake()
+        lecteur_reste_fermee = LecteurFake()
+        
+        lecteur_devant_ouvrir.simuler_detection_badge()
+        moteur_ouverture = MoteurOuverture()
+        moteur_ouverture.associer(lecteur_devant_ouvrir, porte_devant_ouvrir)
+        moteur_ouverture.associer(lecteur_reste_fermee, porte_reste_fermee)
+
+        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
+        moteur_ouverture.interroger()
+
+        # ALORS un signal d'ouverture est envoyé seulement à la Porte devant s'ouvrir
+        self.assertTrue(porte_devant_ouvrir.ouverture_demande)
+        self.assertFalse(porte_reste_fermee.ouverture_demande)
+    def test_deux_portes_deux_lecteurs_badge_non_connu(self):
+        # ETANT DONNE deux Portes reliées à deux Lecteurs
+        porte1 = PorteSpy()
+        porte2 = PorteSpy()
+        lecteur1 = LecteurFake()
+        lecteur2 = LecteurFake()
+
+        # Badge non détecté par les lecteurs
+        lecteur1.simuler_detection_badge(valide=False)
+        lecteur2.simuler_detection_badge(valide=False)
+
+        moteur_ouverture = MoteurOuverture()
+        moteur_ouverture.associer(lecteur1, porte1)
+        moteur_ouverture.associer(lecteur2, porte2)
+
+        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
+        moteur_ouverture.interroger()
+
+        # ALORS aucun signal d'ouverture n'est envoyé aux Portes
+        self.assertFalse(porte1.ouverture_demande)
+        self.assertFalse(porte2.ouverture_demande)
+    def test_porte_bloquee_pendant_un_jour(self):
+        # ETANT DONNE une Porte bloquée pour un jour
+        porte = PorteSpy()
+        porte.bloquer_pendant(1)
+
+        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
+        moteur_ouverture = MoteurOuverture()
+        moteur_ouverture.interroger()
+
+        # ALORS la porte ne doit pas s'ouvrir le premier jour
+        self.assertFalse(porte.ouverture_demande)
+
+        # Attente d'un jour
+        import time
+        time.sleep(24 * 60 * 60)
+
+        # QUAND le Moteur d'Ouverture effectue une nouvelle interrogation des lecteurs
+        moteur_ouverture.interroger()
+
+        # ALORS la porte doit s'ouvrir après un jour
+        self.assertTrue(porte.ouverture_demande)
+
 if __name__ == "__main__":
     unittest.main()
