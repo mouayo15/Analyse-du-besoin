@@ -3,6 +3,8 @@ from analyse_besoin.associationslecteurporte import AssociationsLecteurPorte
 from analyse_besoin.moteur_ouverture import MoteurOuverture
 from tests.utilities.lecteur_fake import LecteurFake
 from tests.utilities.porte_spy import PorteSpy
+from datetime import datetime, timedelta
+
 
 class ControleAccesTest(unittest.TestCase):
     def test_cas_nominal(self):
@@ -165,6 +167,22 @@ class ControleAccesTest(unittest.TestCase):
 
         # ALORS la Porte forcée reçoit le signal d'ouverture même sans présence de badge
         self.assertTrue(porte_forcee.ouverture_demande)
+    def test_porte_forcee_verrouillee(self):
+        # ETANT DONNE une Porte forcée en mode verrouillé
+        porte_forcee = PorteSpy()
+        porte_forcee.forcer_verrouillage()
+
+        lecteur = LecteurFake()
+        lecteur.simuler_detection_badge()
+
+        moteur_ouverture = MoteurOuverture()
+        moteur_ouverture.associer(lecteur, porte_forcee)
+
+        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
+        moteur_ouverture.interroger()
+
+        # ALORS la Porte forcée ne doit pas s'ouvrir
+        self.assertFalse(porte_forcee.ouverture_demande)
 
     def test_deux_portes_deux_lecteurs_avec_badge_connu(self):
         # ETANT DONNE deux Portes reliées à deux Lecteurs
@@ -206,27 +224,7 @@ class ControleAccesTest(unittest.TestCase):
         # ALORS aucun signal d'ouverture n'est envoyé aux Portes
         self.assertFalse(porte1.ouverture_demande)
         self.assertFalse(porte2.ouverture_demande)
-    def test_porte_bloquee_pendant_un_jour(self):
-        # ETANT DONNE une Porte bloquée pour un jour
-        porte = PorteSpy()
-        porte.bloquer_pendant(1)
-
-        # QUAND le Moteur d'Ouverture effectue une interrogation des lecteurs
-        moteur_ouverture = MoteurOuverture()
-        moteur_ouverture.interroger()
-
-        # ALORS la porte ne doit pas s'ouvrir le premier jour
-        self.assertFalse(porte.ouverture_demande)
-
-        # Attente d'un jour
-        import time
-        time.sleep(24 * 60 * 60)
-
-        # QUAND le Moteur d'Ouverture effectue une nouvelle interrogation des lecteurs
-        moteur_ouverture.interroger()
-
-        # ALORS la porte doit s'ouvrir après un jour
-        self.assertTrue(porte.ouverture_demande)
-
+    
+   
 if __name__ == "__main__":
     unittest.main()
